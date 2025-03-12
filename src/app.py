@@ -85,26 +85,24 @@ def get_response(user_input):
     retriever_chain = get_context_retriever_chain(st.session_state.vector_store)
     conversation_rag_chain = get_conversational_rag_chain(retriever_chain)
 
-    if "chat_history" not in st.session_state or not st.session_state.chat_history:
-        st.session_state.chat_history = [
-            HumanMessage(content="Hello!"),  
-        ]
+    # Initialize chat history if not present
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
 
-    if len(st.session_state.chat_history) % 2 == 0:
-        st.session_state.chat_history.append(HumanMessage(content=user_input))
-    else:
-        st.session_state.chat_history.append(AIMessage(content="Let me think..."))
-        st.session_state.chat_history.append(HumanMessage(content=user_input))
+    # Add user message to chat history
+    st.session_state.chat_history.append(HumanMessage(content=user_input))
 
-
+    # Get response from the conversational RAG chain
     response = conversation_rag_chain.invoke({
         "chat_history": st.session_state.chat_history,
         "input": user_input
     })
 
+    # Add AI response to chat history
     st.session_state.chat_history.append(AIMessage(content=response['answer']))
 
     return response['answer']
+
 
 
 # app config
@@ -134,8 +132,7 @@ else:
     user_query = st.chat_input("Type your message here...")
     if user_query is not None and user_query != "":
         response = get_response(user_query)
-        st.session_state.chat_history.append(HumanMessage(content=user_query))
-        st.session_state.chat_history.append(AIMessage(content=response))
+
         
        
 
